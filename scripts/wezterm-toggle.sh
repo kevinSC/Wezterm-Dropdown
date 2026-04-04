@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # wezterm-toggle.sh — Drop-down terminal toggle with multi-monitor support
-# Dependencies: kdotool, kscreen-doctor, python3, wezterm
+# Dependencies: kdotool, kscreen-doctor, python3, wezterm, qdbus6
 #
-# Virtual desktop behaviour: the window is marked STICKY (on all desktops)
-# so activating it never triggers a desktop switch — it always appears on
-# whichever virtual desktop is currently active.
+# Virtual desktop behaviour: uses the KWin scripting API (via qdbus6) to set
+# client.onAllDesktops=true. kdotool windowstate --add STICKY is X11-only and
+# is silently ignored for native Wayland clients like WezTerm.
 
 set -uo pipefail
 
@@ -15,6 +15,31 @@ readonly POLL_INTERVAL=0.05
 readonly POLL_MAX=160
 
 # ── Helpers ───────────────────────────────────────────────────────────────── #
+
+# ensure_sticky
+# Sets onAllDesktops=true via KWin scripting (qdbus6), so the window exists
+# on every virtual desktop and activating it never triggers a desktop switch.
+# Must be called AFTER the window exists — searches by resourceClass.
+ensure_sticky() {
+    local tmpscript
+    tmpscript=$(mktemp --suffix=.js)
+    cat > "$tmpscript" << 'KWSCRIPT'
+var clients = workspace.clientList();
+for (var i = 0; i < clients.length; i++) {
+    if (clients[i].resourceClass === "wezterm-dropdown") {
+        clients[i].onAllDesktops = true;
+    }
+}
+KWSCRIPT
+    local sid
+    sid=$(qdbus6 org.kde.KWin /Scripting loadScript "$tmpscript" "wt-sticky-$$" 2>/dev/null)
+    if [[ "$sid" =~ ^[0-9]+$ ]]; then
+        qdbus6 org.kde.KWin "/Scripting/Script${sid}" run 2>/dev/null || true
+        sleep 0.05
+        qdbus6 org.kde.KWin /Scripting unloadScript "wt-sticky-$$" 2>/dev/null || true
+    fi
+    rm -f "$tmpscript"
+}
 
 # screen_for_point <mx> <my>
 # Prints "X Y W H" of the monitor containing the given point.
@@ -97,9 +122,7 @@ if [[ -z "$WINDOW_ID" ]]; then
 
     if [[ -n "$NEW_ID" && -n "$TX" ]]; then
         kdotool windowstate --add NO_BORDER "$NEW_ID"
-        # STICKY = on all virtual desktops: activating the window will never
-        # switch the active desktop — it appears on whichever one you're on.
-        kdotool windowstate --add STICKY    "$NEW_ID"
+        ensure_sticky  # pin to all virtual desktops via KWin scripting
         kdotool windowmove   "$NEW_ID" "$TX" "$((TY - TH))"
         kdotool windowsize   "$NEW_ID" "$TW" "$TH"
         sleep 0.05
@@ -123,6 +146,8 @@ fi
 # Case 3: Exists but hidden — teleport to current monitor and slide in
 read -r TX TY TW TH < <(mouse_screen)
 if [[ -n "$TX" ]]; then
+    # Re-ensure onAllDesktops (may have been lost after KWin restart)
+    ensure_sticky
     # Set geometry before minimising so KDE records the new position
     kdotool windowmove     "$WINDOW_ID" "$TX" "$((TY - TH))"
     kdotool windowsize     "$WINDOW_ID" "$TW" "$TH"
