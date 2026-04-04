@@ -19,25 +19,30 @@ readonly POLL_MAX=160
 # ensure_sticky
 # Sets onAllDesktops=true via KWin scripting (qdbus6), so the window exists
 # on every virtual desktop and activating it never triggers a desktop switch.
-# Must be called AFTER the window exists — searches by resourceClass.
+#
+# KDE6 API notes (verified via journalctl):
+#   - workspace.clientList() → REMOVED in KDE6 (was X11-era API)
+#   - workspace.windows      → undefined in KDE6
+#   - workspace.windowList() → correct KDE6 replacement (it's a function)
+#   - Execution: loadScript() + /Scripting start() — NOT Script{N}.run()
+#     (the Script{N} DBus object may not exist yet when run() is called)
 ensure_sticky() {
-    local tmpscript
+    local tmpscript plugin_name
     tmpscript=$(mktemp --suffix=.js)
+    plugin_name="wt-sticky-$$"
     cat > "$tmpscript" << 'KWSCRIPT'
-var clients = workspace.clientList();
-for (var i = 0; i < clients.length; i++) {
-    if (clients[i].resourceClass === "wezterm-dropdown") {
-        clients[i].onAllDesktops = true;
+var w = workspace.windowList();
+for (var i = 0; i < w.length; i++) {
+    if (w[i].resourceClass === "wezterm-dropdown") {
+        w[i].onAllDesktops = true;
     }
 }
 KWSCRIPT
-    local sid
-    sid=$(qdbus6 org.kde.KWin /Scripting loadScript "$tmpscript" "wt-sticky-$$" 2>/dev/null)
-    if [[ "$sid" =~ ^[0-9]+$ ]]; then
-        qdbus6 org.kde.KWin "/Scripting/Script${sid}" run 2>/dev/null || true
-        sleep 0.05
-        qdbus6 org.kde.KWin /Scripting unloadScript "wt-sticky-$$" 2>/dev/null || true
-    fi
+    qdbus6 org.kde.KWin /Scripting unloadScript "$plugin_name" 2>/dev/null || true
+    qdbus6 org.kde.KWin /Scripting loadScript "$tmpscript" "$plugin_name" 2>/dev/null
+    qdbus6 org.kde.KWin /Scripting start 2>/dev/null || true
+    sleep 0.1
+    qdbus6 org.kde.KWin /Scripting unloadScript "$plugin_name" 2>/dev/null || true
     rm -f "$tmpscript"
 }
 
