@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # wezterm-toggle.sh — Drop-down terminal toggle with multi-monitor support
 # Dependencies: kdotool, kscreen-doctor, python3, wezterm
+#
+# Virtual desktop behaviour: the window is marked STICKY (on all desktops)
+# so activating it never triggers a desktop switch — it always appears on
+# whichever virtual desktop is currently active.
 
 set -uo pipefail
 
@@ -93,6 +97,9 @@ if [[ -z "$WINDOW_ID" ]]; then
 
     if [[ -n "$NEW_ID" && -n "$TX" ]]; then
         kdotool windowstate --add NO_BORDER "$NEW_ID"
+        # STICKY = on all virtual desktops: activating the window will never
+        # switch the active desktop — it appears on whichever one you're on.
+        kdotool windowstate --add STICKY    "$NEW_ID"
         kdotool windowmove   "$NEW_ID" "$TX" "$((TY - TH))"
         kdotool windowsize   "$NEW_ID" "$TW" "$TH"
         sleep 0.05
