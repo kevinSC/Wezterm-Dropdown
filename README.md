@@ -20,7 +20,7 @@ A native drop-down terminal powered by [WezTerm](https://wezfurlong.org/wezterm/
 ## Installation
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Wezterm-Dropdown.git ~/Experiments/Wezterm/Wezterm-Dropdown
+git clone https://github.com/kevinSC/Wezterm-Dropdown.git ~/Experiments/Wezterm/Wezterm-Dropdown
 cd ~/Experiments/Wezterm/Wezterm-Dropdown
 ./install.sh
 ```
