@@ -5,9 +5,11 @@
 # manage everything from a single git repository without copying files.
 #
 # Usage:
-#   git clone <repo> ~/Experiments/Wezternconf
-#   cd ~/Experiments/Wezternconf
+#   git clone <repo> ~/Experiments/Wezterm/Wezternconf
+#   cd ~/Experiments/Wezterm/Wezternconf
 #   ./install.sh
+#
+# Any clone path works; REPO_DIR is resolved dynamically from this script.
 
 set -euo pipefail
 
@@ -59,9 +61,9 @@ echo "  Repo: $REPO_DIR"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-# ── WezTerm configs ──────────────────────────────────────────────────────── #
-safe_link "$REPO_DIR/wezterm/wezterm.lua"  "$HOME/.config/wezterm/wezterm.lua"
-safe_link "$REPO_DIR/wezterm/dropdown.lua" "$HOME/.config/wezterm/dropdown.lua"
+# ── Dropdown-specific WezTerm configs ────────────────────────────────────── #
+safe_link "$REPO_DIR/wezterm/dropdown.lua"      "$HOME/.config/wezterm/dropdown.lua"
+safe_link "$REPO_DIR/wezterm/dropdown_base.lua" "$HOME/.config/wezterm/dropdown_base.lua"
 
 # ── Toggle script ────────────────────────────────────────────────────────── #
 chmod +x "$REPO_DIR/scripts/wezterm-toggle.sh"
