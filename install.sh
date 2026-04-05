@@ -5,8 +5,8 @@
 # manage everything from a single git repository without copying files.
 #
 # Usage:
-#   git clone <repo> ~/Experiments/Wezterm/Wezternconf
-#   cd ~/Experiments/Wezterm/Wezternconf
+#   git clone <repo> ~/Experiments/Wezterm/Wezterm-Dropdown
+#   cd ~/Experiments/Wezterm/Wezterm-Dropdown
 #   ./install.sh
 #
 # Any clone path works; REPO_DIR is resolved dynamically from this script.
@@ -37,7 +37,7 @@ safe_link() {
 
     if [[ -L "$link" ]]; then
         local current_target
-        current_target="$(readlink -f "$link")"
+        current_target="$(readlink -f "$link" || true)"
         if [[ "$current_target" == "$(readlink -f "$target")" ]]; then
             info "Already linked: $link → already points to repo. Skipping."
             return

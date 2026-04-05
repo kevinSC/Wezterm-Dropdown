@@ -20,12 +20,12 @@ A native drop-down terminal powered by [WezTerm](https://wezfurlong.org/wezterm/
 ## Installation
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/wezternconf.git ~/Experiments/Wezterm/Wezternconf
-cd ~/Experiments/Wezterm/Wezternconf
+git clone https://github.com/YOUR_USERNAME/Wezterm-Dropdown.git ~/Experiments/Wezterm/Wezterm-Dropdown
+cd ~/Experiments/Wezterm/Wezterm-Dropdown
 ./install.sh
 ```
 
-> The repo can live anywhere. The installer resolves paths from its own directory; `~/Experiments/Wezterm/Wezternconf` is just the workspace layout used here.
+> The repo can live anywhere. The installer resolves paths from its own directory; `~/Experiments/Wezterm/Wezterm-Dropdown` is just the workspace layout used here.
 
 The install script creates **symlinks** from the standard system paths to this repo:
 
@@ -76,36 +76,6 @@ sudo pacman -S wezterm kdotool python ttf-jetbrains-mono
 ```
 
 Press the shortcut again to hide it. Move your mouse to another monitor and press again — the terminal follows the cursor.
-
----
-
-## How it works
-
-### Three-case toggle logic
-
-| State | Action |
-|---|---|
-| Window doesn't exist | Launch WezTerm, move off-screen immediately, slide in |
-| Window is active (focused) | Slide up and minimize |
-| Window exists but hidden | Teleport to current monitor, slide in |
-
-### Why `kdotool` and not `xdotool`?
-
-Wayland prevents applications from manipulating windows of other apps (a security restriction of the protocol). `kdotool` is KDE-specific and communicates through KWin's internal protocol, bypassing that restriction officially.
-
-### Why `kscreen-doctor`?
-
-It's KDE's official tool for querying monitor geometry (position X,Y and size WxH in the virtual pixel space). Its output contains ANSI color codes — Python strips them before parsing.
-
-### Why cubic easing?
-
-- **Ease-out** (on show): fast start, soft landing → feels like gravity pulling the terminal down
-- **Ease-in** (on hide): slow start, fast exit → feels like being flung upward  
-Linear movement feels mechanical; easing feels natural.
-
-### Why `window_decorations = "RESIZE"` and not `"NONE"`?
-
-With `"NONE"`, WezTerm signals to KDE Wayland that it's a native fullscreen surface. KDE then memorises the original monitor dimensions and forces them on minimize/restore — **breaking multi-monitor repositioning**. With `"RESIZE"`, KDE treats it as a normal resizable window and respects geometry changes freely.
 
 ---
 
