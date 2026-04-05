@@ -34,3 +34,6 @@ date:: [[2026-04-05]]
 		- **Fix final implementado**: El código js se re-redactó iterando `workspace.windowList()`. Y en lugar de matar una instancia específica por ID, usamos `qdbus org.kde.KWin /Scripting start()`. Es a prueba de balas, estable y forzó limpiamente el comportamiento sticky en Wayland multi-desktop.
 - ## Resultado
 	- El dolor que implica lidiar con los rigores estrictos y seguros de Wayland (versus las facilidades inseguras de X11) vale 100% el esfuerzo. El uso combinado de kdotool, python intermedio, bash y los internals del dbus de KWin dan como resultado una utilidad brutalmente rápida, y la code-base documentada ya es un modelo re-utilizable para cualquier widget on-demand que queramos armar y que respete monitores.
+- ## Repositorio Open Source
+	- El código fuente, los scripts y las instrucciones de instalación están publicados y mantenidos públicamente en GitHub:
+	- **Repositorio**: [https://github.com/kevinSC/Wezterm-Dropdown](https://github.com/kevinSC/Wezterm-Dropdown)
